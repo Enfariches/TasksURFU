@@ -163,7 +163,7 @@ class Interface:
 
     @staticmethod
     def get_parameters():
-        file_name = input("Введите название чего-то там: ")
+        file_name = input("Введите название не знаю чего: ")
         vacancy = input("Введите название профессии: ")
         method = input("Вакансии или Статистика: ")
         return file_name, vacancy, method
