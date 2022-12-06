@@ -35,21 +35,57 @@ currency_to_rub = {
     "UZS": 0.0055,
 }
 heads1 = ["Год", "Средняя зарплата", "Средняя зарплата - ", "Количество вакансий", "Количество вакансий - "]
-heads2 = ["Город", "Уровень зарплаты",'', "Город", "Доля вакансий"]
+heads2 = ["Город", "Уровень зарплаты", '', "Город", "Доля вакансий"]
 
 
 class Report:
+    """Класс создает файлы (xlsx,pdf,png) для отображения статистики вакансии, по необходимым требованиям.
+
+    Attributes:
+        report (Workbook): Переменная с функций по созданию xlxs-файла.
+    """
     def __init__(self):
+        """Инициализация объекта для создания xlsx-файла в корневой папке проекта.
+
+        Args:
+            report (Workbook): Переменная с функций по созданию xlxs-файла.
+        """
         self.report = Report.generate_excel(result, options.parameter[1])
 
     @staticmethod
     def generate_excel(result, vacancy):
+        """ Функция создает excel-файл с данными из статистики, оформленный по необходимым требованиям.
+
+        Args:
+            result (couple): Статистика вакансий.
+            vacancy (str): Название необходимой вакансий.
+
+        Returns:
+            Workbook: xlsx- файл, появляющийся в корневой папке проекта.
+        """
         def as_text(val):
+            """Функция изменяет тип объекта на str, и заменяет значение None на "" (пустоту).
+
+            Args:
+                val(str or float or int or bool or None): Переменная для перевода в str.
+
+            Returns:
+                str(val): Объект типа str.
+                ""(str): Пустота типа str.
+            """
             if val is None:
                 return ""
             return str(val)
 
         def cell_parameters(sheet):
+            """Функция создает рамки вокруг ячеек, и отлаживает столбец по длине загаловка.
+
+            Args:
+                sheet (sheet): xlsx лист из модуля openpyxl
+
+            Returns:
+                sheet: Измененный xlxs лист из модуля openpyxl
+            """
             thin = Side(border_style="thin", color="000000")
             for column in sheet.columns:
                 length = max(len(as_text(cell.value)) for cell in column)
@@ -62,7 +98,6 @@ class Report:
                     if sheet == sheet1:
                         cell.border = Border(left=thin, right=thin, top=thin, bottom=thin)
             return sheet
-
 
         salary_by_years, vac_salary_by_years, vacs_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities = result
         wb = Workbook()
@@ -83,14 +118,37 @@ class Report:
         cell_parameters(sheet2)
 
         return wb.save("report.xlsx")
+
     @staticmethod
-    def Graphics(result, vacancy):
+    def graphics(result, vacancy):
+        """Функция использует функций mathplotlib, чтобы сгенерировать png-формат статистики по требованиям.
+
+        Args:
+            result (typle): Статистика вакансии, полученная из класса Interface.
+            vacancy (str): Название необходимой вакансии, полученная из функций get_parameters.
+        Returns:
+            function: Функция, которая создает png-файл в папке проекта.
+        """
 
         def slash(citites):
+            """Функция переносит на следующую строку города в названиях которых есть тире или пробел.
+            Args:
+                citites (dict): Словарь со значениями статистики для преобразования.
+            Returns:
+                list: Список с замененными символами.
+            """
             citites = [s.replace('-', '\n').replace(' ', '\n') for s in citites]
             return citites
 
         def top10(dict):
+            """Преобразовывыет словарь для круговой диаграммы, сохраняет первые 10 пар ключ-значения,
+             а остальное приводит к общему ключу ("Другие").
+
+            Args:
+                dict (dict): Словарь со значениями статистики для преобразования.
+            Returns:
+                dict: Преобразованный словарь.
+            """
             first10pairs = {k: dict[k] for k in list(dict)[:11]}
             lastpairs = {k: dict[k] for k in list(dict)[10:]}
             count = 0
@@ -142,7 +200,13 @@ class Report:
 
         return plt.savefig('graph.png', dpi=300)
 
-    def generate_pdf(result ,vacancy, heads1, heads2):
+    def generate_pdf(result, vacancy, heads1, heads2):
+        """ Функция работает в паре с html-кодом. Чтобы преобразовать данные ввиде xlxs и png в pdf-формат.
+
+        Args:
+            result (tuple): Статистика вакансии, полученная из класса Interface.
+            vacancy (str): Название необходимой вакансии, полученная из функций get_parameters.
+        """
         salary_by_years, vac_salary_by_years, vacs_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities = result
         config = pdfkit.configuration(wkhtmltopdf=r'E:\apps\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
@@ -158,18 +222,46 @@ class Report:
 
 
 class Interface:
+    """Класс принимает входящие данные от пользователя. Обрабатывает, фильтрует и возвращает (или выводит) с статистику
+    по вхожденным в неё данным из csv-файла.
+
+    Attributes:
+        parameter (list): Хранит в себе данные введенные пользователем.
+    """
     def __init__(self):
+        """Инициализирует данные введенные пользователем.
+
+        Args:
+            parameter (list): Данные введенные пользователем(file_name, vacancy, method).
+        """
         self.parameter = Interface.get_parameters()
 
     @staticmethod
     def get_parameters():
-        file_name = input("Введите название алоха: ")
+        """Функция получает начальные данные о файле и требованиях.
+
+        Args:
+            file_name (str): Название csv-файла.
+            vacancy (str): Требуемая профессия.
+            method (str): Способ вывода полученных результатов.
+        """
+        file_name = input("Введите название файла: ")
         vacancy = input("Введите название профессии: ")
         method = input("Вакансии или Статистика: ")
         return file_name, vacancy, method
 
     @staticmethod
     def printing_data(dic_vacancies, vac_name, method):
+        """Функция формирует статистику для её визуализаий и рассчитывает динамику необходимых требований.
+
+        Args:
+            dic_vacancies (): Список вакансий.
+            vac_name (): Профессия введенная пользователем.
+            method (str): Способ вывода полученных результатов.
+
+        Returns:
+            tuple: Кортеж со словарями, в которых хранится статистика по csv-файлу.
+        """
         years = set()
         for vacancy in dic_vacancies:
             years.add(int(datetime.strptime(vacancy.published_at, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y')))
@@ -227,22 +319,50 @@ class Interface:
             print("Доля вакансий по городам (в порядке убывания):", vacs_by_cities)
             exit()
         elif method == "Статистика":
-            return salary_by_years, vac_salary_by_years, vacs_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities
+            dicts = salary_by_years, vac_salary_by_years, vacs_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities
+            return dicts
 
 
 class DataSet:
+    """ Класс для получения обработанных данных csv-файла в удобном формате.
+
+    Attributes:
+        file_name (str): Введеная пользователем название csv-файла, полученная функций get_parameters.
+    """
     def __init__(self, file_name):
+        """ Инициализация объекта file_name, и полученного обработаного списка вакансий vacancies_objects.
+
+        Args:
+            file_name (str): Введеная пользователем название csv-файла, полученная функций get_parameters.
+            vacancies_objects (list): Обработанный список вакансий.
+        """
         self.file_name = file_name
         self.vacancies_objects = DataSet.csv_filter(file_name)
 
     @staticmethod
     def cleaner_string(text):
+        """ Функция очищает строку от html-тегов и заменяет \n (знак табуляций - перенос строки) на пробел.
+
+        Args:
+             text (str): Строка из вакансий проходящая фильтрация.
+
+        Returns:
+            str: Очищенная строка.
+        """
         text = re.sub(r"<[^>]+>", "", text)
         text = " ".join(text.split())
         return text
 
     @staticmethod
     def csv_filter(file_name):
+        """ Обрабатывает список с вакансиями, оставляя необходимые объекты, и чистит вакансий с пустыми ячейками.
+
+        Args:
+            file_name (str): Введеная пользователем название csv-файла, полученная функций get_parameters.
+
+        Returns:
+            list: Обработаные и отфильтрованые вакансий от html-тегов (благодаря функций cleaner_string).
+        """
         list_naming, vacancies = DataSet.csv_reader(file_name)
         okay = [x for x in vacancies if len(x) == len(list_naming) and '' not in x]
         people_data = []
@@ -258,6 +378,15 @@ class DataSet:
 
     @staticmethod
     def csv_reader(file_name):
+        # Функция открывает и преобразовывает csv формат.
+
+        # Args:
+            # file_name (str): Введеная пользователем название csv-файла, полученная функций get_parameters.
+
+        #Returns:
+            # list (list_naming): Название столбцов csv-файла.
+            # list (vacancies): Список списков всех вакансий csv-файла.
+
        with open(file_name, encoding="utf_8_sig") as file:
             text = csv.reader(file)
             data = [x for x in text]
@@ -268,15 +397,41 @@ class DataSet:
             vacancies = data[1:]
             return list_naming, vacancies
 
+
     @staticmethod
-    def test_data(arg,method):
+    def test_data(arg, method):
+        """Функция проверяет файл на пустоту.
+
+        Args:
+            arg(tuple): Содержит данные веденные пользователем.
+            method(str): Пользовательский метод изображения результатов.
+
+        Returns:
+            tuple: Кортеж с полностью обработанными словарями.
+        """
         if arg is not None:
             data = DataSet(arg[0])
-            return Interface.printing_data(data.vacancies_objects, arg[1], method)
+            tuple_dicts = Interface.printing_data(data.vacancies_objects, arg[1], method)
+            return tuple_dicts
 
 
 class Salary:
+    """ Класс для представления зарплаты.
+
+    Attributes:
+        salary_from (int): Нижняя граница оклада.
+        salary_to (int): Верхняя граница оклада.
+        salary_currency (str): Валюта оклада.
+    """
     def __init__(self, salary_from, salary_to, salary_currency):
+        """ Инициализирует объект Salary, выполняет конвертацию для целочисленных полей. Вычисляет среднюю зарплату
+        из вилки и переводить в рубли, при помощи словоря - currency_to_rub.
+
+        Args:
+            salary_from (str or int or float): Нижняя граница оклада.
+            salary_to (str or int or float): Верхняя граница оклада.
+            salary_currency (str): Валюта оклада.
+        """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_currency = salary_currency
@@ -284,10 +439,31 @@ class Salary:
                              * currency_to_rub[self.salary_currency]
 
     def get_salary_rubles(self):
+        """ Функция предоставляет обработанные данные о зарплате при её вызове.
+
+        Returns:
+            float: Средняя зарплата в рублях.
+        """
         return self.salary_rubles
 
 class Vacancy:
+    """Класс для представления необходимых объектов вакансий.
+
+    Attributes:
+        name (str): Название вакансий.
+        salary (str or int or float): Зарплата.
+        area_name (str): Название региона.
+        published_at (str): Дата публикаций.
+    """
     def __init__(self, name, salary, area_name, published_at):
+        """Инициализирует необходимые объекты name, salary, area_name, published_at и упускает ненужные объекты.
+
+        Args:
+            name (str): Название вакансии.
+            salary (str or int or float): Зарплата.
+            area_name (str): Название региона.
+            published_at (str): Дата публикаций.
+        """
         self.name = name
         self.salary = salary
         self.area_name = area_name
@@ -295,6 +471,6 @@ class Vacancy:
 
 options = Interface()
 result = DataSet.test_data(options.parameter, options.parameter[2])
-Report.Graphics(result, options.parameter[1])
+Report.graphics(result, options.parameter[1])
 Report.generate_excel(result, options.parameter[1])
 Report.generate_pdf(result, options.parameter[1], heads1, heads2)
