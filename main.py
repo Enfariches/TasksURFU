@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
+from unittest import TestCase
 
 dic_naming = {'name': 'Название',
               'description': 'Описание',
@@ -37,6 +38,26 @@ currency_to_rub = {
 heads1 = ["Год", "Средняя зарплата", "Средняя зарплата - ", "Количество вакансий", "Количество вакансий - "]
 heads2 = ["Город", "Уровень зарплаты", '', "Город", "Доля вакансий"]
 
+
+
+class Tests(TestCase):
+    def test_clear_tag(self):
+        self.assertEqual(DataSet.cleaner_string('<h>Head</h>'), 'Head')
+
+    def test_clear_n(self):
+        self.assertEqual(DataSet.cleaner_string('Head \nres \napp'), 'Head res app')
+
+    def test_clear_many_spaces(self):
+        self.assertEqual(DataSet.cleaner_string('<h>Head    res</h>'), 'Head res')
+
+    def test_clear_spaces_sides(self):
+        self.assertEqual(DataSet.cleaner_string(' <h> Head res</h> '), 'Head res')
+
+    def test_foo(self):
+        self.assertEqual(Foo(1, 2), 2)
+
+def Foo(a, b):
+    return a * b
 
 class Report:
     """Класс создает файлы (xlsx,pdf,png) для отображения статистики вакансии, по необходимым требованиям.
@@ -245,7 +266,8 @@ class Interface:
             vacancy (str): Требуемая профессия.
             method (str): Способ вывода полученных результатов.
         """
-        file_name = input("Введите название файла: ")
+        #file_name = input("Введите название файла: ")
+        file_name = 'vacancies_medium.csv'
         vacancy = input("Введите название профессии: ")
         method = input("Вакансии или Статистика: ")
         return file_name, vacancy, method
@@ -255,8 +277,8 @@ class Interface:
         """Функция формирует статистику для её визуализаий и рассчитывает динамику необходимых требований.
 
         Args:
-            dic_vacancies (): Список вакансий.
-            vac_name (): Профессия введенная пользователем.
+            dic_vacancies (list): Список вакансий.
+            vac_name (str): Профессия введенная пользователем.
             method (str): Способ вывода полученных результатов.
 
         Returns:
@@ -351,6 +373,7 @@ class DataSet:
         """
         text = re.sub(r"<[^>]+>", "", text)
         text = " ".join(text.split())
+        print(text)
         return text
 
     @staticmethod
