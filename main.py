@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
+from unittest import TestCase
+import unittest
+import doctest
 
 dic_naming = {'name': 'Название',
               'description': 'Описание',
@@ -37,6 +40,38 @@ currency_to_rub = {
 heads1 = ["Год", "Средняя зарплата", "Средняя зарплата - ", "Количество вакансий", "Количество вакансий - "]
 heads2 = ["Город", "Уровень зарплаты", '', "Город", "Доля вакансий"]
 
+def Foo(a,b):
+    return a * b
+
+class Tests(TestCase):
+    def test_clear_tag(self):
+        self.assertEqual(DataSet.cleaner_string('<h>Head</h>'), 'Head')
+
+    def test_clear_n(self):
+        self.assertEqual(DataSet.cleaner_string('Head \nres \napp'), 'Head res app')
+
+    def test_clear_many_spaces(self):
+        self.assertEqual(DataSet.cleaner_string('<h>Head    res</h>'), 'Head res')
+
+    def test_clear_spaces_sides(self):
+        self.assertEqual(DataSet.cleaner_string(' <h> Head res</h> '), 'Head res')
+
+    def test_dict_top10_less10(self):
+        self.assertEqual(Report.top10({2007: 38916, 2008: 43646, 2009: 42492}),
+                         {2007: 38916, 2008: 43646, 2009: 42492})
+
+    def test_dict_top10_over10(self):
+        self.assertEqual(Report.top10({2007: 38916, 2008: 43646, 2009: 42492, 2010: 43846, 2011: 47451, 2012: 48243,
+                                       2013: 51510, 2014: 50658, 2015: 52696, 2016: 62675, 2017: 60935, 2018: 58335}),
+                         {2007: 38916, 2008: 43646, 2009: 42492, 2010: 43846, 2011: 47451, 2012: 48243,
+                          2013: 51510, 2014: 50658, 2015: 52696, 2016: 62675})
+
+    def test_salary_type(self):
+        self.assertEqual(type(Salary(10.0, 20.4, 'RUR')).__name__, 'Salary')
+
+    def test_salary_currency_get_salary(self):
+        self.assertEqual(Salary(10, 30.0, 'EUR').get_salary_rubles(), 1198.0)
+
 
 class Report:
     """Класс создает файлы (xlsx,pdf,png) для отображения статистики вакансии, по необходимым требованиям.
@@ -57,7 +92,7 @@ class Report:
         """ Функция создает excel-файл с данными из статистики, оформленный по необходимым требованиям.
 
         Args:
-            result (couple): Статистика вакансий.
+            result (tuple): Статистика вакансий.
             vacancy (str): Название необходимой вакансий.
 
         Returns:
@@ -124,39 +159,47 @@ class Report:
         """Функция использует функций mathplotlib, чтобы сгенерировать png-формат статистики по требованиям.
 
         Args:
-            result (typle): Статистика вакансии, полученная из класса Interface.
+            result (tuple): Статистика вакансии, полученная из класса Interface.
             vacancy (str): Название необходимой вакансии, полученная из функций get_parameters.
         Returns:
             function: Функция, которая создает png-файл в папке проекта.
         """
+    @staticmethod
+    def slash(citites):
+        """Функция переносит на следующую строку города в названиях которых есть тире или пробел.
+        Args:
+            citites (dict): Словарь со значениями статистики для преобразования.
+        Returns:
+            list: Список с замененными символами.
+        """
+        citites = [s.replace('-', '\n').replace(' ', '\n') for s in citites]
+        return citites
+    @staticmethod
+    def top10(dict):
 
-        def slash(citites):
-            """Функция переносит на следующую строку города в названиях которых есть тире или пробел.
-            Args:
-                citites (dict): Словарь со значениями статистики для преобразования.
-            Returns:
-                list: Список с замененными символами.
-            """
-            citites = [s.replace('-', '\n').replace(' ', '\n') for s in citites]
-            return citites
+        """Преобразовывыет словарь для круговой диаграммы, сохраняет первые 10 пар ключ-значения,
+            а остальное приводит к общему ключу ("Другие").
 
-        def top10(dict):
-            """Преобразовывыет словарь для круговой диаграммы, сохраняет первые 10 пар ключ-значения,
-             а остальное приводит к общему ключу ("Другие").
+        Args:
+            dict (dict): Словарь со значениями статистики для преобразования.
+        Returns:
+            dict: Преобразованный словарь.
 
-            Args:
-                dict (dict): Словарь со значениями статистики для преобразования.
-            Returns:
-                dict: Преобразованный словарь.
-            """
-            first10pairs = {k: dict[k] for k in list(dict)[:11]}
-            lastpairs = {k: dict[k] for k in list(dict)[10:]}
-            count = 0
-            for i in lastpairs.values():
-                count += i
-            lastpairscount = {"Другие": count}
-            first10pairs.update(lastpairscount)
-            return first10pairs
+        >>>Report.top10({2007: 38916, 2008: 43646, 2009: 42492, 2010: 43846, 2011: 47451, 2012: 48243, 2013: 51510, 2014: 50658, 2015: 52696, 2016: 62675, 2017: 60935, 2018: 58335})
+        {2007: 38916, 2008: 43646, 2009: 42492, 2010: 43846, 2011: 47451, 2012: 48243,
+        2013: 51510, 2014: 50658, 2015: 52696, 2016: 62675})
+
+        >>>Report.top10({2007: 38916, 2008: 43646, 2009: 42492})
+        {2007: 38916, 2008: 43646, 2009: 42492})
+        """
+        first10pairs = {k: dict[k] for k in list(dict)[:11]}
+        lastpairs = {k: dict[k] for k in list(dict)[10:]}
+        count = 0
+        for i in lastpairs.values():
+            count += i
+        lastpairscount = {"Другие": count}
+        first10pairs.update(lastpairscount)
+        return first10pairs
 
         salary_by_years, vac_salary_by_years, vacs_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities = result
         width = 0.4
@@ -245,9 +288,12 @@ class Interface:
             vacancy (str): Требуемая профессия.
             method (str): Способ вывода полученных результатов.
         """
-        file_name = input("Введите название файла: ")
-        vacancy = input("Введите название профессии: ")
-        method = input("Вакансии или Статистика: ")
+        #file_name = input("Введите название файла: ")
+        file_name = 'vacancies_medium.csv'
+        #vacancy = input("Введите название профессии: ")
+        vacancy = ''
+        #method = input("Вакансии или Статистика: ")
+        method = 'Вакансии'
         return file_name, vacancy, method
 
     @staticmethod
@@ -255,8 +301,8 @@ class Interface:
         """Функция формирует статистику для её визуализаий и рассчитывает динамику необходимых требований.
 
         Args:
-            dic_vacancies (): Список вакансий.
-            vac_name (): Профессия введенная пользователем.
+            dic_vacancies (list): Список вакансий.
+            vac_name (str): Профессия введенная пользователем.
             method (str): Способ вывода полученных результатов.
 
         Returns:
@@ -348,6 +394,13 @@ class DataSet:
 
         Returns:
             str: Очищенная строка.
+
+        >>> DataSet.cleaner_string('<h>Head</h>')
+        'Head'
+        >>> DataSet.cleaner_string('<h>Head    res</h>')
+        'Head res'
+        >>> DataSet.cleaner_string(' <h> Head res</h> ')
+        'Head res'
         """
         text = re.sub(r"<[^>]+>", "", text)
         text = " ".join(text.split())
@@ -431,7 +484,16 @@ class Salary:
             salary_from (str or int or float): Нижняя граница оклада.
             salary_to (str or int or float): Верхняя граница оклада.
             salary_currency (str): Валюта оклада.
+         >>> Salary(10000,20000,'RUR').salary_rubles
+        15000.0
+        >>> Salary(10000,20000,'EUR').salary_from
+        599000.0
+        >>> Salary(10000,20000,'EUR').salary_to
+        1198000.0
+        >>> Salary(10000,20000,'RUR').salary_currency
+        'RUR'
         """
+
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_currency = salary_currency
