@@ -1,0 +1,21 @@
+import pandas as pd
+
+def csv_read():
+    df = (pd.read_csv('vacancies_by_year.csv', on_bad_lines='skip').dropna())
+    tags = df.columns.tolist()
+    return tags, df
+
+def split_df(lst, df, years):
+    for year in years:
+        vacs_in_list = []
+        for i in range(len(df)):
+            if df['published_at'][i][:4] == year:
+                vacs_in_list.append(df.iloc[i])
+        vacs_in_list = pd.DataFrame(vacs_in_list, columns=lst)
+        vacs_in_list.to_csv(rf'C:\Users\Sergey\PycharmProjects\pythonPro\csv_pandas\file_csv_{year}', index=False)
+
+lst_year = lambda df: sorted(set(x[5][:4] for x in df))
+
+tags, df = csv_read()
+lst_year = lst_year(df.values)
+split_df(tags, df, lst_year)
