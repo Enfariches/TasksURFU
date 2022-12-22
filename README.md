@@ -9,3 +9,5 @@
 
 ![explorer_3RhfNtm2E4](https://user-images.githubusercontent.com/96489078/207620139-64a87fe1-f890-4cca-a61c-0b09ea7a55cd.png)
 
+Задание 3.3.1
+![pycharm64_zpG5eEUNh6](https://user-images.githubusercontent.com/96489078/209116488-c365e57b-9d5d-4898-b9ab-6c41d6748e64.png)
