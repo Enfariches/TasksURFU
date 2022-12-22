@@ -1,0 +1,35 @@
+import pandas as pd
+
+def xml_sort(df, char_code, y ,month):
+    if month < 10:
+        month = f'0{month}'
+
+    df['Value'] = df['Value'].str.replace(',', '.')
+    df['Value'] = pd.to_numeric(df['Value'])
+    iloc_dict = {}
+    iloc_dict['date'] = f"{y} - {month}"
+    for i in range(len(df)):
+        if any(charcode in df.iloc[i]['CharCode'] for charcode in char_code):
+            course = df.iloc[i]['Value'] / df.iloc[i]['Nominal']
+            iloc_dict[df.iloc[i]['CharCode']] = course
+    return iloc_dict
+
+def pd_create_sort(file):
+    pd.set_option('expand_frame_repr', False)
+    df = pd.read_csv(file)
+    df_currency = df.groupby('salary_currency')['name'].agg(['count'])
+    df_currency.reset_index(inplace=True)
+    df_currency = df_currency.sort_values('count', ascending=False)
+    for y in range(2003, 2023):
+        for month in range(1, 13):
+            url = f"http://www.cbr.ru/scripts/XML_daily.asp?date_req=01/{month:02}/{y}&d=0"
+            df = pd.read_xml(url, encoding='cp1251')[["CharCode", "Nominal", "Value"]]
+            result.append(xml_sort(df, char_code, y, month))
+    return result
+
+
+col_name = ['date', 'USD', 'KZT', 'BYR', 'UAH', 'EUR']
+char_code = ['USD', 'KZT', 'BYR', 'UAH', 'EUR']
+result = []
+final = pd.DataFrame(pd_create_sort('vacancies_dif_currencies.csv'))
+final.to_csv('final_csv')
