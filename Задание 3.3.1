@@ -7,7 +7,7 @@ def xml_sort(df, char_code, y ,month):
     df['Value'] = df['Value'].str.replace(',', '.')
     df['Value'] = pd.to_numeric(df['Value'])
     iloc_dict = {}
-    iloc_dict['date'] = f"{y} - {month}"
+    iloc_dict['date'] = f"{y}-{month}"
     for i in range(len(df)):
         if any(charcode in df.iloc[i]['CharCode'] for charcode in char_code):
             course = df.iloc[i]['Value'] / df.iloc[i]['Nominal']
