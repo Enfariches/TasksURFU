@@ -11,3 +11,13 @@
 
 Задание 3.3.1
 ![pycharm64_zpG5eEUNh6](https://user-images.githubusercontent.com/96489078/209116488-c365e57b-9d5d-4898-b9ab-6c41d6748e64.png)
+
+Задание 3.2.2
+--- Без мультипроцессинга ---
+![1 2](https://user-images.githubusercontent.com/96489078/209990075-02c792f4-49f1-4500-9205-bec276bbb20f.jpg)
+
+--- С Мультипроцессингом --- 
+![2(мульти)](https://user-images.githubusercontent.com/96489078/209990163-54c94d8e-3430-4e12-a859-b8db66a64143.jpg)
+
+--- Concurrent futures ---
+![3(фьючер)](https://user-images.githubusercontent.com/96489078/209990206-a6e43f3d-a74e-4bbb-8136-004ef0106c33.jpg)
